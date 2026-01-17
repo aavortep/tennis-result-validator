@@ -11,14 +11,14 @@ class SignupPage extends React.Component {
     }
 
     async handleSignUpForm(event) {
-        event.preventDefault()
+        /*event.preventDefault()
         const data = new FormData(event.target)
         const response = await this.sendSignUpData(data)
         if (response.status === 200) {
-            //const body = await response.json()
-            //alert("Успешная Регистрация:\nТокен:" + body["token"])
+            const body = await response.json()
+            alert("Успешная Регистрация:\nТокен:" + body["token"])
         }
-        else alert(response.status)
+        else alert(response.status)*/
     }
 
     render() {

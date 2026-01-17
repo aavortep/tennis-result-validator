@@ -1,38 +1,193 @@
-.App {
+@font-face {
+  font-family: "Audiowide";
+  src: url("fonts/Audiowide-Regular.ttf");
+}
+
+@font-face {
+  font-family: "Helvetica Neue";
+  src: url("fonts/HelveticaNeueBoldCondensed.ttf");
+}
+
+.Header-box {
+  background-color: #206cbf;
+  min-height: 58px;
+  text-align: center;
+  color: #ffff;
+  font-family: 'Audiowide';
+  font-size: 36pt;
+  position: sticky;
+}
+
+#links {
+  font-family: 'Helvetica Neue';
+  font-size: 15pt;
+  color: #ffff;
+}
+
+#links a:hover {
+  color: #ffff;
+}
+
+.Label-font {
+  font-family: 'Helvetica Neue';
+  font-size: 15pt;
+}
+
+section {
+  width: 1033px;
+  height: 450px;
+  overflow: auto;
+  margin-top: 28px;
+  margin-left: 38px;
+}
+
+.Img-info {
+  width: 1033px;
+  height: 450px;
+  margin-top: 28px;
+  margin-left: 38px;
+}
+
+.Img-info__img {
+  max-width: 35%;
+}
+
+.Feed-item {
+  width: 277px;
+  height: 222px;
+}
+
+.Feed-item__img {
+  max-width: 50%;
+}
+
+.Center-img {
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.Feed-item__title {
+  margin: 10px 0;
+  text-align: center;
+  font-family: 'Helvetica Neue';
+  font-size: 15pt;
+  color: #4B4B4B;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+#feed_img{
+  width: 277px;
+  height: 222px;
+  background-image: url(images/img_icon.png);
+  background-size: contain;
+  background-position: center;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+#feed_img p{
+  text-align: center;
+  font-family: 'Helvetica Neue';
+  font-size: 15pt;
+  color: #4B4B4B;
 }
 
-.App-link {
-  color: #61dafb;
+#round_img {
+  border-radius: 100px;
+  border-color: #ffff;
+  border-width: 2pt;
+  width: 30px;
+  height: 30px;
+  background-image: url(images/img_icon.png);
+  background-size: contain;
+  background-position: center;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+#pressed_btn {
+  border-radius: 5px;
+  background-color: #206cbf;
+  border-color: #206cbf;
+  border-width: 4;
+  color: #ffff;
+  font-family: 'Helvetica Neue';
+  font-size: 17pt;
+  text-align: center;
+  height: 212px;
+  width: 80px;
+}
+
+#pressed_btn p {
+  padding-top: 85%;
+}
+
+.Btn {
+  border-radius: 5px;
+  background-color: #ffff;
+  border-color: #206cbf;
+  border-width: 4pt;
+  color: #206cbf;
+  font-family: 'Helvetica Neue';
+  font-size: 17pt;
+  height: 60px;
+  width: 212px;
+  margin-top: 20px;
+}
+
+.Btn:hover {
+  border-radius: 5px;
+  background-color: #206cbf;
+  border-color: #206cbf;
+  border-width: 4;
+  color: #ffff;
+  font-family: 'Helvetica Neue';
+  font-size: 17pt;
+  height: 60px;
+  width: 212px;
+  margin-top: 20px;
+}
+
+.Side-btn {
+  border-radius: 5px;
+  background-color: #ffff;
+  border-color: #206cbf;
+  border-width: 4pt;
+  color: #206cbf;
+  font-family: 'Helvetica Neue';
+  font-size: 17pt;
+  height: 212px;
+  width: 80px;
+}
+
+.Side-btn:hover {
+  border-radius: 5px;
+  background-color: #206cbf;
+  border-color: #206cbf;
+  border-width: 4;
+  color: #ffff;
+  font-family: 'Helvetica Neue';
+  font-size: 17pt;
+  height: 212px;
+  width: 80px;
+}
+
+.Text-input {
+  width: 300px;
+  height: 25px;
+  border-radius: 5px;
+  border-width: 3pt;
+  border-color: #206cbf;
+  padding: 5px;
+  color: #7A7A7A;
+  font-family: 'Helvetica Neue';
+  font-size: 11pt;
+  margin-top: 20px;
+}
+
+.Checkbox {
+  width: 20px;
+  height: 15px;
+  border-radius: 5px;
+  border-width: 3pt;
+  border-color: #206cbf;
+  padding: 5px;
+  color: #7A7A7A;
+  font-family: 'Helvetica Neue';
+  font-size: 11pt;
+  margin-top: 20px;
 }

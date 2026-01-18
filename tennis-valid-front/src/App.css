@@ -57,10 +57,6 @@ section {
   height: 222px;
 }
 
-.Feed-item__img {
-  max-width: 50%;
-}
-
 .Center-img {
   text-align: center;
 }
@@ -73,28 +69,13 @@ section {
   color: #4B4B4B;
 }
 
-#feed_img{
-  width: 277px;
-  height: 222px;
-  background-image: url(images/img_icon.png);
-  background-size: contain;
-  background-position: center;
-}
-
-#feed_img p{
-  text-align: center;
-  font-family: 'Helvetica Neue';
-  font-size: 15pt;
-  color: #4B4B4B;
-}
-
-#round_img {
+#profile_icon {
   border-radius: 100px;
   border-color: #ffff;
   border-width: 2pt;
   width: 30px;
   height: 30px;
-  background-image: url(images/img_icon.png);
+  background-image: url(images/profile.png);
   background-size: contain;
   background-position: center;
 }

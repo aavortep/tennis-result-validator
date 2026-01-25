@@ -1,0 +1,73 @@
+"""
+Business logic services for scores and disputes
+"""
+
+from apps.tournaments.models import Match
+from core.exceptions import (
+    ValidationError, PermissionDeniedError, NotFoundError, InvalidStateError
+)
+from core.utils import validate_set_scores, determine_match_winner
+from .models import Score
+
+
+class ScoreService:
+    @staticmethod
+    def submit_score(match_id, set_scores, user):
+        """
+        Args:
+            match_id: ID of the match
+            set_scores: List of set scores
+            user: User submitting the score
+
+        Returns:
+            Score: Created score instance
+        """
+
+        try:
+            match = Match.objects.get(id=match_id)
+        except Match.DoesNotExist:
+            raise NotFoundError('Match not found.')
+
+        # Validate user can submit score
+        if user.is_player:
+            if not match.is_player_in_match(user):
+                raise PermissionDeniedError('You are not a player in this match.')
+        elif user.is_referee:
+            if match.referee != user:
+                raise PermissionDeniedError('You are not the referee for this match.')
+        else:
+            raise PermissionDeniedError('Only players and referees can submit scores.')
+
+        # Validate match state
+        if match.status not in (Match.Status.IN_PROGRESS, Match.Status.COMPLETED):
+            raise InvalidStateError('Match must be in progress or completed to submit score.')
+
+        # Validate set scores
+        is_valid, error = validate_set_scores(set_scores)
+        if not is_valid:
+            raise ValidationError(error)
+
+        # Check for existing score from this user
+        existing_score = Score.objects.filter(match=match, submitted_by=user).first()
+        if existing_score:
+            raise ValidationError('You have already submitted a score for this match.')
+
+        # Determine winner
+        winner_key = determine_match_winner(set_scores)
+        winner = None
+        if winner_key:
+            winner = match.player1 if winner_key == 'player1' else match.player2
+
+        score = Score.objects.create(
+            match=match,
+            submitted_by=user,
+            set_scores=set_scores,
+            winner=winner,
+            is_confirmed=user.is_referee  # Auto-confirm referee scores
+        )
+
+        # If referee submitted, update match
+        if user.is_referee:
+            ScoreService._finalize_match(match, score)
+
+        return score

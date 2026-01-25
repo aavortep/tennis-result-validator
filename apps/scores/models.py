@@ -4,7 +4,7 @@ from django.conf import settings
 from core.mixins import TimestampMixin
 
 class Score(TimestampMixin):
-    """Score model representing a match score submission."""
+    """Score model representing a match score submission"""
 
     match = models.ForeignKey(
         'tournaments.Match',

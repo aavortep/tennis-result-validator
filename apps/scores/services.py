@@ -162,6 +162,28 @@ class ScoreService:
         return score
     
     @staticmethod
+    def delete_score(score_id, user):
+        """
+        Args:
+            score_id: ID of the score
+            user: User deleting the score
+        """
+        try:
+            score = Score.objects.get(id=score_id)
+        except Score.DoesNotExist:
+            raise NotFoundError('Score not found.')
+
+        # Only submitter or organizer can delete
+        if score.submitted_by != user and not user.is_organizer:
+            raise PermissionDeniedError('You can only delete your own score submission.')
+
+        # Cannot delete confirmed scores
+        if score.is_confirmed and not user.is_organizer:
+            raise InvalidStateError('Cannot delete confirmed score.')
+
+        score.delete()
+
+    @staticmethod
     def _finalize_match(match, score):
         match.status = Match.Status.COMPLETED
         match.winner = score.winner

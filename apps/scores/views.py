@@ -39,7 +39,7 @@ class ScoreSubmitView(APIView):
 
 class ScoreDetailView(generics.RetrieveUpdateDestroyAPIView):
     """Retrieve, update, or delete a score"""
-    
+
     queryset = Score.objects.all()
     permission_classes = [IsAuthenticated]
 
@@ -48,7 +48,7 @@ class ScoreDetailView(generics.RetrieveUpdateDestroyAPIView):
             return ScoreUpdateSerializer
         return ScoreSerializer
 
-    def update(self, request):
+    def update(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -62,8 +62,9 @@ class ScoreDetailView(generics.RetrieveUpdateDestroyAPIView):
         except (ValidationError, PermissionDeniedError, NotFoundError, InvalidStateError) as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    def destroy(self, request):
+    def destroy(self, request, *args, **kwargs):
         try:
+            ScoreService.delete_score(self.kwargs['pk'], request.user)
             return Response(status=status.HTTP_204_NO_CONTENT)
         except (PermissionDeniedError, NotFoundError, InvalidStateError) as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
 from apps.tournaments.models import Match
+from .models import Score
 from .services import ScoreService
 
 @login_required
@@ -36,3 +37,17 @@ def score_submit(request, match_id):
     return render(request, 'scores/score_form.html', {
         'match': match,
     })
+
+
+@login_required
+def score_confirm(request, pk):
+    """Confirm a submitted score."""
+    score = get_object_or_404(Score, pk=pk)
+
+    if request.method == 'POST':
+        try:
+            messages.success(request, "Score confirmed!")
+        except Exception as e:
+            messages.error(request, str(e))
+
+    return redirect('match_detail', pk=score.match.id)

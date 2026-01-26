@@ -68,3 +68,19 @@ class ScoreDetailView(generics.RetrieveUpdateDestroyAPIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
         except (PermissionDeniedError, NotFoundError, InvalidStateError) as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ScoreConfirmView(APIView):
+    """Confirm an opponent's score."""
+
+    permission_classes = [CanSubmitScore]
+
+    def post(self, request, pk):
+        try:
+            score = ScoreService.confirm_score(pk, request.user)
+            return Response({
+                'message': 'Score confirmed successfully.',
+                'score': ScoreSerializer(score).data
+            })
+        except (ValidationError, PermissionDeniedError, NotFoundError) as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

@@ -13,17 +13,17 @@ from .models import Score
 
 
 class ScoreService:
-    """
-    Args:
-        match_id: ID of the match
-        set_scores: List of set scores
-        user: User submitting the score
-
-    Returns:
-        Score: Created score instance
-    """
     @staticmethod
     def submit_score(match_id, set_scores, user):
+        """
+        Args:
+            match_id: ID of the match
+            set_scores: List of set scores
+            user: User submitting the score
+
+        Returns:
+            Score: Created score instance
+        """
         try:
             match = Match.objects.get(id=match_id)
         except Match.DoesNotExist:
@@ -73,17 +73,18 @@ class ScoreService:
 
         return score
     
-    """
-    Confirm an opponent's score submission.
-    Args:
-        score_id: ID of the score
-        user: User confirming the score
-
-    Returns:
-        Score: Confirmed score instance
-    """
+    
     @staticmethod
     def confirm_score(score_id, user):
+        """
+        Confirm an opponent's score submission.
+        Args:
+            score_id: ID of the score
+            user: User confirming the score
+
+        Returns:
+            Score: Confirmed score instance
+        """
         try:
             score = Score.objects.get(id=score_id)
         except Score.DoesNotExist:
@@ -115,6 +116,48 @@ class ScoreService:
 
         # Finalize match
         ScoreService._finalize_match(match, score)
+
+        return score
+    
+    @staticmethod
+    def update_score(score_id, set_scores, user):
+        """
+        Args:
+            score_id: ID of the score
+            set_scores: Updated set scores
+            user: User updating the score
+
+        Returns:
+            Score: Updated score instance
+        """
+        try:
+            score = Score.objects.get(id=score_id)
+        except Score.DoesNotExist:
+            raise NotFoundError('Score not found.')
+
+        # Only submitter can update
+        if score.submitted_by != user:
+            raise PermissionDeniedError('You can only update your own score submission.')
+
+        # Cannot update confirmed scores
+        if score.is_confirmed:
+            raise InvalidStateError('Cannot update confirmed score.')
+
+        # Validate set scores
+        is_valid, error = validate_set_scores(set_scores)
+        if not is_valid:
+            raise ValidationError(error)
+
+        # Update winner
+        winner_key = determine_match_winner(set_scores)
+        winner = None
+        if winner_key:
+            match = score.match
+            winner = match.player1 if winner_key == 'player1' else match.player2
+
+        score.set_scores = set_scores
+        score.winner = winner
+        score.save()
 
         return score
     

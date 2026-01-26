@@ -46,6 +46,7 @@ def score_confirm(request, pk):
 
     if request.method == 'POST':
         try:
+            ScoreService.confirm_score(score, request.user)
             messages.success(request, "Score confirmed!")
         except Exception as e:
             messages.error(request, str(e))

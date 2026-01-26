@@ -2,6 +2,8 @@
 Business logic services for scores and disputes
 """
 
+from django.utils import timezone
+
 from apps.tournaments.models import Match
 from core.exceptions import (
     ValidationError, PermissionDeniedError, NotFoundError, InvalidStateError
@@ -11,18 +13,17 @@ from .models import Score
 
 
 class ScoreService:
+    """
+    Args:
+        match_id: ID of the match
+        set_scores: List of set scores
+        user: User submitting the score
+
+    Returns:
+        Score: Created score instance
+    """
     @staticmethod
     def submit_score(match_id, set_scores, user):
-        """
-        Args:
-            match_id: ID of the match
-            set_scores: List of set scores
-            user: User submitting the score
-
-        Returns:
-            Score: Created score instance
-        """
-
         try:
             match = Match.objects.get(id=match_id)
         except Match.DoesNotExist:
@@ -71,3 +72,54 @@ class ScoreService:
             ScoreService._finalize_match(match, score)
 
         return score
+    
+    """
+    Confirm an opponent's score submission.
+    Args:
+        score_id: ID of the score
+        user: User confirming the score
+
+    Returns:
+        Score: Confirmed score instance
+    """
+    @staticmethod
+    def confirm_score(score_id, user):
+        try:
+            score = Score.objects.get(id=score_id)
+        except Score.DoesNotExist:
+            raise NotFoundError('Score not found.')
+
+        match = score.match
+
+        # Player can confirm opponent's score
+        if user.is_player:
+            if not match.is_player_in_match(user):
+                raise PermissionDeniedError('You are not a player in this match.')
+            if score.submitted_by == user:
+                raise ValidationError('You cannot confirm your own score.')
+
+        # Referee can confirm any score for their match
+        elif user.is_referee:
+            if match.referee != user:
+                raise PermissionDeniedError('You are not the referee for this match.')
+        else:
+            raise PermissionDeniedError('Only players and referees can confirm scores.')
+
+        if score.is_confirmed:
+            raise ValidationError('Score is already confirmed.')
+
+        score.is_confirmed = True
+        score.confirmed_by = user
+        score.confirmed_at = timezone.now()
+        score.save()
+
+        # Finalize match
+        ScoreService._finalize_match(match, score)
+
+        return score
+    
+    @staticmethod
+    def _finalize_match(match, score):
+        match.status = Match.Status.COMPLETED
+        match.winner = score.winner
+        match.save()

@@ -11,7 +11,8 @@ from core.exceptions import (
 )
 from .models import Score
 from .serializers import (
-    ScoreSerializer, ScoreSubmitSerializer, ScoreUpdateSerializer
+    ScoreSerializer, ScoreSubmitSerializer, ScoreUpdateSerializer,
+    ScoreListSerializer
 )
 from .services import ScoreService
 
@@ -48,7 +49,7 @@ class ScoreDetailView(generics.RetrieveUpdateDestroyAPIView):
             return ScoreUpdateSerializer
         return ScoreSerializer
 
-    def update(self, request, *args, **kwargs):
+    def update(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -62,7 +63,7 @@ class ScoreDetailView(generics.RetrieveUpdateDestroyAPIView):
         except (ValidationError, PermissionDeniedError, NotFoundError, InvalidStateError) as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    def destroy(self, request, *args, **kwargs):
+    def destroy(self, request):
         try:
             ScoreService.delete_score(self.kwargs['pk'], request.user)
             return Response(status=status.HTTP_204_NO_CONTENT)
@@ -84,3 +85,13 @@ class ScoreConfirmView(APIView):
             })
         except (ValidationError, PermissionDeniedError, NotFoundError) as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class MatchScoresView(generics.ListAPIView):
+    """List scores for a match."""
+
+    serializer_class = ScoreListSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return ScoreService.get_match_scores(self.kwargs['match_id'])

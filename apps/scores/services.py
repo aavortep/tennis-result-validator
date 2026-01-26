@@ -182,6 +182,11 @@ class ScoreService:
             raise InvalidStateError('Cannot delete confirmed score.')
 
         score.delete()
+    
+    @staticmethod
+    def get_match_scores(match_id):
+        """Get all scores for a match."""
+        return Score.objects.filter(match_id=match_id)
 
     @staticmethod
     def _finalize_match(match, score):

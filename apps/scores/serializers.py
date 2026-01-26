@@ -51,3 +51,14 @@ class ScoreUpdateSerializer(serializers.ModelSerializer):
         if not is_valid:
             raise serializers.ValidationError(error)
         return value
+
+
+class ScoreListSerializer(serializers.ModelSerializer):
+    submitted_by_name = serializers.CharField(source='submitted_by.username', read_only=True)
+
+    class Meta:
+        model = Score
+        fields = [
+            'id', 'match', 'submitted_by_name', 'set_scores',
+            'is_confirmed', 'created_at'
+        ]

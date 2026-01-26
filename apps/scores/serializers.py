@@ -39,3 +39,15 @@ class ScoreSubmitSerializer(serializers.ModelSerializer):
         if not is_valid:
             raise serializers.ValidationError(error)
         return value
+
+
+class ScoreUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Score
+        fields = ['set_scores']
+
+    def validate_set_scores(self, value):
+        is_valid, error = validate_set_scores(value)
+        if not is_valid:
+            raise serializers.ValidationError(error)
+        return value

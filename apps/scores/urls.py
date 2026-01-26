@@ -7,4 +7,5 @@ app_name = 'scores'
 urlpatterns = [
     # Score endpoints
     path('submit/', views.ScoreSubmitView.as_view(), name='score-submit'),
+    path('<int:pk>/', views.ScoreDetailView.as_view(), name='score-detail'),
 ]

@@ -1,6 +1,7 @@
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
 from apps.accounts.permissions import (
     CanSubmitScore
@@ -8,8 +9,9 @@ from apps.accounts.permissions import (
 from core.exceptions import (
     ValidationError, PermissionDeniedError, NotFoundError, InvalidStateError
 )
+from .models import Score
 from .serializers import (
-    ScoreSerializer, ScoreSubmitSerializer
+    ScoreSerializer, ScoreSubmitSerializer, ScoreUpdateSerializer
 )
 from .services import ScoreService
 
@@ -32,4 +34,30 @@ class ScoreSubmitView(APIView):
                 status=status.HTTP_201_CREATED
             )
         except (ValidationError, PermissionDeniedError, NotFoundError, InvalidStateError) as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+"""Retrieve, update, or delete a score"""
+class ScoreDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Score.objects.all()
+    permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.request.method in ('PUT', 'PATCH'):
+            return ScoreUpdateSerializer
+        return ScoreSerializer
+
+    def update(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            return Response(ScoreSerializer(score).data)
+        except (ValidationError, PermissionDeniedError, NotFoundError, InvalidStateError) as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request):
+        try:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except (PermissionDeniedError, NotFoundError, InvalidStateError) as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

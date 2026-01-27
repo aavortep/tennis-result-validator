@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
 from apps.tournaments.models import Match
-from .models import Score
+from .models import Score, Dispute
 from .services import ScoreService
 
 @login_required
@@ -52,3 +52,22 @@ def score_confirm(request, pk):
             messages.error(request, str(e))
 
     return redirect('match_detail', pk=score.match.id)
+
+
+@login_required
+def dispute_list(request):
+    user = request.user
+    if user.role == 'ORGANIZER':
+        disputes = Dispute.objects.all()
+    elif user.role == 'REFEREE':
+        disputes = Dispute.objects.filter(match__referee=user)
+    else:
+        disputes = Dispute.objects.filter(raised_by=user)
+
+    status = request.GET.get('status')
+    if status:
+        disputes = disputes.filter(status=status)
+
+    return render(request, 'scores/dispute_list.html', {
+        'disputes': disputes
+    })

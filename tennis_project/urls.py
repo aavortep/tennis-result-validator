@@ -20,10 +20,11 @@ urlpatterns = [
     # Admin
     path('admin/', admin.site.urls),
 
-    # API endpoints - Accounts
+    # API endpoints
     path('api/accounts/', include('apps.accounts.urls')),
+    path('api/scores/', include('apps.scores.urls')),
 
-    # Template-based views - Accounts
+    # Accounts
     path('login/', accounts_views.login_view, name='login'),
     path('logout/', accounts_views.logout_view, name='logout'),
     path('register/', accounts_views.register_view, name='register'),
@@ -32,6 +33,9 @@ urlpatterns = [
     # Scores
     path('matches/<int:match_id>/score/', scores_views.score_submit, name='score_submit'),
     path('scores/<int:pk>/confirm/', scores_views.score_confirm, name='score_confirm'),
+
+    # Disputes
+    path('disputes/', scores_views.dispute_list, name='dispute_list'),
 ]
 
 if settings.DEBUG:

@@ -10,4 +10,7 @@ urlpatterns = [
     path('<int:pk>/', views.ScoreDetailView.as_view(), name='score-detail'),
     path('<int:pk>/confirm/', views.ScoreConfirmView.as_view(), name='score-confirm'),
     path('match/<int:match_id>/', views.MatchScoresView.as_view(), name='match-scores'),
+
+    # Dispute endpoints
+    path('disputes/', views.DisputeListView.as_view(), name='dispute-list'),
 ]

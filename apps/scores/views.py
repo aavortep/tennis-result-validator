@@ -9,10 +9,10 @@ from apps.accounts.permissions import (
 from core.exceptions import (
     ValidationError, PermissionDeniedError, NotFoundError, InvalidStateError
 )
-from .models import Score
+from .models import Score, Dispute
 from .serializers import (
     ScoreSerializer, ScoreSubmitSerializer, ScoreUpdateSerializer,
-    ScoreListSerializer
+    ScoreListSerializer, DisputeSerializer
 )
 from .services import ScoreService
 
@@ -72,7 +72,7 @@ class ScoreDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class ScoreConfirmView(APIView):
-    """Confirm an opponent's score."""
+    """Confirm an opponent's score"""
 
     permission_classes = [CanSubmitScore]
 
@@ -88,10 +88,37 @@ class ScoreConfirmView(APIView):
 
 
 class MatchScoresView(generics.ListAPIView):
-    """List scores for a match."""
+    """List scores for a match"""
 
     serializer_class = ScoreListSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return ScoreService.get_match_scores(self.kwargs['match_id'])
+
+
+class DisputeListView(generics.ListAPIView):
+    serializer_class = DisputeSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Dispute.objects.all()
+
+        # Filter by status
+        status_filter = self.request.query_params.get('status')
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
+
+        # Players see only their disputes
+        if user.is_player:
+            from django.db.models import Q
+            queryset = queryset.filter(
+                Q(match__player1=user) | Q(match__player2=user)
+            )
+
+        # Referees see disputes for their matches
+        elif user.is_referee:
+            queryset = queryset.filter(match__referee=user)
+
+        return queryset

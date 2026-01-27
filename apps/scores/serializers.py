@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from apps.accounts.serializers import UserPublicSerializer
 from core.utils import validate_set_scores
-from .models import Score
+from .models import Score, Dispute
 
 
 class ScoreSerializer(serializers.ModelSerializer):
@@ -62,3 +62,23 @@ class ScoreListSerializer(serializers.ModelSerializer):
             'id', 'match', 'submitted_by_name', 'set_scores',
             'is_confirmed', 'created_at'
         ]
+
+
+class DisputeSerializer(serializers.ModelSerializer):
+    """Serializer for dispute details"""
+
+    raised_by = UserPublicSerializer(read_only=True)
+    resolved_by = UserPublicSerializer(read_only=True)
+    evidence_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Dispute
+        fields = [
+            'id', 'match', 'raised_by', 'reason', 'status',
+            'resolved_by', 'resolution_notes', 'resolved_at',
+            'evidence_count', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def get_evidence_count(self, obj):
+        return obj.evidence.count()

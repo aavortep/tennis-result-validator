@@ -1,3 +1,14 @@
+import os
+from uuid import uuid4
+
+
+def evidence_upload_path(instance, filename):
+    """Generate upload path for evidence files."""
+    ext = filename.split('.')[-1]
+    new_filename = f"{uuid4().hex}.{ext}"
+    return os.path.join('evidence', str(instance.dispute.id), new_filename)
+
+
 def validate_set_scores(set_scores):
     """
     Args:
@@ -6,7 +17,6 @@ def validate_set_scores(set_scores):
     Returns:
         tuple: (is_valid, error_message)
     """
-
     if not isinstance(set_scores, list):
         return False, "Set scores must be a list"
 
@@ -58,7 +68,6 @@ def determine_match_winner(set_scores):
     Returns:
         str: 'player1', 'player2', or None if no winner yet
     """
-    
     player1_sets = 0
     player2_sets = 0
 

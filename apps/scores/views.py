@@ -7,12 +7,12 @@ from apps.accounts.permissions import (
     CanSubmitScore, IsOrganizerOrReferee
 )
 from core.exceptions import (
-    ValidationError, PermissionDeniedError, NotFoundError, InvalidStateError
+    ValidationError, PermissionDeniedError, NotFoundError, InvalidStateError, DisputeError
 )
 from .models import Score, Dispute
 from .serializers import (
     ScoreSerializer, ScoreSubmitSerializer, ScoreUpdateSerializer,
-    ScoreListSerializer, DisputeSerializer
+    ScoreListSerializer, DisputeSerializer, DisputeCreateSerializer
 )
 from .services import ScoreService, DisputeService
 
@@ -138,3 +138,26 @@ class DisputeDetailView(generics.RetrieveAPIView):
     queryset = Dispute.objects.all()
     serializer_class = DisputeSerializer
     permission_classes = [IsAuthenticated]
+
+
+class DisputeCreateView(APIView):
+    """Create a dispute for a match"""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = DisputeCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            dispute = DisputeService.create_dispute(
+                serializer.validated_data['match'].id,
+                serializer.validated_data['reason'],
+                request.user
+            )
+            return Response(
+                DisputeSerializer(dispute).data,
+                status=status.HTTP_201_CREATED
+            )
+        except (ValidationError, PermissionDeniedError, NotFoundError, DisputeError) as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

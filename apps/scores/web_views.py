@@ -4,7 +4,7 @@ from django.contrib import messages
 
 from apps.tournaments.models import Match
 from .models import Score, Dispute, Evidence
-from .services import ScoreService
+from .services import ScoreService, DisputeService
 
 @login_required
 def score_submit(request, match_id):
@@ -80,4 +80,23 @@ def dispute_detail(request, pk):
     return render(request, 'scores/dispute_detail.html', {
         'dispute': dispute,
         'evidence': evidence,
+    })
+
+
+@login_required
+def dispute_create(request, match_id):
+    """Create a dispute for a match"""
+    match = get_object_or_404(Match, pk=match_id)
+
+    if request.method == 'POST':
+        try:
+            reason = request.POST.get('reason')
+            dispute = DisputeService.create_dispute(match, request.user, reason)
+            messages.success(request, "Dispute created!")
+            return redirect('dispute_detail', pk=dispute.id)
+        except Exception as e:
+            messages.error(request, str(e))
+
+    return render(request, 'scores/dispute_form.html', {
+        'match': match,
     })

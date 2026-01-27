@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from apps.tournaments.models import Match
 from core.exceptions import (
-    ValidationError, PermissionDeniedError, NotFoundError, InvalidStateError
+    ValidationError, PermissionDeniedError, NotFoundError, InvalidStateError, DisputeError
 )
 from core.utils import validate_set_scores, determine_match_winner
 from .models import Score, Dispute
@@ -203,3 +203,45 @@ class DisputeService:
         return Dispute.objects.filter(
             status__in=[Dispute.Status.OPEN, Dispute.Status.UNDER_REVIEW]
         )
+    
+    @staticmethod
+    def create_dispute(match_id, reason, user):
+        """
+        Create a dispute for a match.
+
+        Args:
+            match_id: ID of the match
+            reason: Reason for dispute
+            user: User raising the dispute
+
+        Returns:
+            Dispute: Created dispute instance
+        """
+        try:
+            match = Match.objects.get(id=match_id)
+        except Match.DoesNotExist:
+            raise NotFoundError('Match not found.')
+
+        # Only players in the match can dispute
+        if not user.is_player or not match.is_player_in_match(user):
+            raise PermissionDeniedError('Only players in this match can raise disputes.')
+
+        # Check for existing open dispute
+        existing_dispute = Dispute.objects.filter(
+            match=match,
+            status__in=[Dispute.Status.OPEN, Dispute.Status.UNDER_REVIEW]
+        ).exists()
+        if existing_dispute:
+            raise DisputeError('There is already an open dispute for this match.')
+
+        dispute = Dispute.objects.create(
+            match=match,
+            raised_by=user,
+            reason=reason
+        )
+
+        # Update match status
+        match.status = Match.Status.DISPUTED
+        match.save()
+
+        return dispute

@@ -82,3 +82,9 @@ class DisputeSerializer(serializers.ModelSerializer):
 
     def get_evidence_count(self, obj):
         return obj.evidence.count()
+
+
+class DisputeCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Dispute
+        fields = ['match', 'reason']

@@ -13,4 +13,5 @@ urlpatterns = [
 
     # Dispute endpoints
     path('disputes/', views.DisputeListView.as_view(), name='dispute-list'),
+    path('disputes/open/', views.OpenDisputesView.as_view(), name='open-disputes'),
 ]

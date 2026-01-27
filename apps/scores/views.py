@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from apps.accounts.permissions import (
-    CanSubmitScore
+    CanSubmitScore, IsOrganizerOrReferee
 )
 from core.exceptions import (
     ValidationError, PermissionDeniedError, NotFoundError, InvalidStateError
@@ -14,7 +14,7 @@ from .serializers import (
     ScoreSerializer, ScoreSubmitSerializer, ScoreUpdateSerializer,
     ScoreListSerializer, DisputeSerializer
 )
-from .services import ScoreService
+from .services import ScoreService, DisputeService
 
 
 class ScoreSubmitView(APIView):
@@ -122,3 +122,13 @@ class DisputeListView(generics.ListAPIView):
             queryset = queryset.filter(match__referee=user)
 
         return queryset
+
+
+class OpenDisputesView(generics.ListAPIView):
+    """List all open disputes (for organizers/referees)"""
+
+    serializer_class = DisputeSerializer
+    permission_classes = [IsOrganizerOrReferee]
+
+    def get_queryset(self):
+        return DisputeService.get_open_disputes()

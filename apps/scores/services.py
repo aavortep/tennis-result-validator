@@ -9,7 +9,7 @@ from core.exceptions import (
     ValidationError, PermissionDeniedError, NotFoundError, InvalidStateError
 )
 from core.utils import validate_set_scores, determine_match_winner
-from .models import Score
+from .models import Score, Dispute
 
 
 class ScoreService:
@@ -193,3 +193,13 @@ class ScoreService:
         match.status = Match.Status.COMPLETED
         match.winner = score.winner
         match.save()
+
+
+class DisputeService:
+    """Service class for dispute management operations"""
+
+    @staticmethod
+    def get_open_disputes():
+        return Dispute.objects.filter(
+            status__in=[Dispute.Status.OPEN, Dispute.Status.UNDER_REVIEW]
+        )

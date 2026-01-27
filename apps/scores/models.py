@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 
 from core.mixins import TimestampMixin
+from core.utils import evidence_upload_path
 
 class Score(TimestampMixin):
     """Score model representing a match score submission"""
@@ -91,3 +92,32 @@ class Dispute(TimestampMixin):
 
     def __str__(self):
         return f"Dispute for {self.match} by {self.raised_by.username}"
+
+
+class Evidence(TimestampMixin):
+    """Evidence model for dispute documentation"""
+
+    dispute = models.ForeignKey(
+        Dispute,
+        on_delete=models.CASCADE,
+        related_name='evidence'
+    )
+    submitted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='submitted_evidence'
+    )
+    file = models.FileField(
+        upload_to=evidence_upload_path,
+        blank=True,
+        null=True
+    )
+    description = models.TextField()
+
+    class Meta:
+        db_table = 'evidence'
+        verbose_name_plural = 'evidence'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Evidence for dispute #{self.dispute.id} by {self.submitted_by.username}"

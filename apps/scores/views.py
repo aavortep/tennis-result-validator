@@ -132,3 +132,9 @@ class OpenDisputesView(generics.ListAPIView):
 
     def get_queryset(self):
         return DisputeService.get_open_disputes()
+
+
+class DisputeDetailView(generics.RetrieveAPIView):
+    queryset = Dispute.objects.all()
+    serializer_class = DisputeSerializer
+    permission_classes = [IsAuthenticated]

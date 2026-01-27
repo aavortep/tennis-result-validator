@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
 from apps.tournaments.models import Match
-from .models import Score, Dispute
+from .models import Score, Dispute, Evidence
 from .services import ScoreService
 
 @login_required
@@ -70,4 +70,14 @@ def dispute_list(request):
 
     return render(request, 'scores/dispute_list.html', {
         'disputes': disputes
+    })
+
+
+def dispute_detail(request, pk):
+    dispute = get_object_or_404(Dispute, pk=pk)
+    evidence = Evidence.objects.filter(dispute=dispute)
+
+    return render(request, 'scores/dispute_detail.html', {
+        'dispute': dispute,
+        'evidence': evidence,
     })

@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from apps.accounts.permissions import (
-    CanSubmitScore, IsOrganizerOrReferee
+    CanSubmitScore, IsOrganizerOrReferee, CanResolveDispute
 )
 from core.exceptions import (
     ValidationError, PermissionDeniedError, NotFoundError, InvalidStateError, DisputeError
@@ -12,7 +12,8 @@ from core.exceptions import (
 from .models import Score, Dispute
 from .serializers import (
     ScoreSerializer, ScoreSubmitSerializer, ScoreUpdateSerializer,
-    ScoreListSerializer, DisputeSerializer, DisputeCreateSerializer
+    ScoreListSerializer, DisputeSerializer, DisputeCreateSerializer,
+    DisputeResolveSerializer
 )
 from .services import ScoreService, DisputeService
 
@@ -160,4 +161,27 @@ class DisputeCreateView(APIView):
                 status=status.HTTP_201_CREATED
             )
         except (ValidationError, PermissionDeniedError, NotFoundError, DisputeError) as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DisputeResolveView(APIView):
+    permission_classes = [CanResolveDispute]
+
+    def post(self, request, pk):
+        serializer = DisputeResolveSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            dispute = DisputeService.resolve_dispute(
+                pk,
+                serializer.validated_data['resolution_notes'],
+                request.user,
+                serializer.validated_data.get('final_score_id'),
+                serializer.validated_data.get('winner_id')
+            )
+            return Response({
+                'message': 'Dispute resolved successfully.',
+                'dispute': DisputeSerializer(dispute).data
+            })
+        except (ValidationError, PermissionDeniedError, NotFoundError, InvalidStateError) as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

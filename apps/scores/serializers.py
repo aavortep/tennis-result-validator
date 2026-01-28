@@ -88,3 +88,9 @@ class DisputeCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dispute
         fields = ['match', 'reason']
+
+
+class DisputeResolveSerializer(serializers.Serializer):
+    resolution_notes = serializers.CharField(required=True)
+    final_score_id = serializers.IntegerField(required=False, allow_null=True)
+    winner_id = serializers.IntegerField(required=False, allow_null=True)

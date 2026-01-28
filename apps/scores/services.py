@@ -2,8 +2,10 @@
 Business logic services for scores and disputes
 """
 
+from django.db import transaction
 from django.utils import timezone
 
+from apps.accounts.models import User
 from apps.tournaments.models import Match
 from core.exceptions import (
     ValidationError, PermissionDeniedError, NotFoundError, InvalidStateError, DisputeError
@@ -242,6 +244,72 @@ class DisputeService:
 
         # Update match status
         match.status = Match.Status.DISPUTED
+        match.save()
+
+        return dispute
+    
+    @staticmethod
+    @transaction.atomic
+    def resolve_dispute(dispute_id, resolution_notes, user, final_score_id=None, winner_id=None):
+        """
+        Args:
+            dispute_id: ID of the dispute
+            resolution_notes: Resolution explanation
+            user: User resolving the dispute
+            final_score_id: ID of accepted score (optional)
+            winner_id: ID of declared winner (optional)
+
+        Returns:
+            Dispute: Resolved dispute instance
+        """
+        try:
+            dispute = Dispute.objects.get(id=dispute_id)
+        except Dispute.DoesNotExist:
+            raise NotFoundError('Dispute not found.')
+
+        # Only referee or organizer can resolve
+        if not (user.is_referee or user.is_organizer):
+            raise PermissionDeniedError('Only referees and organizers can resolve disputes.')
+
+        if user.is_referee and dispute.match.referee != user:
+            raise PermissionDeniedError('You are not the referee for this match.')
+
+        if dispute.status == Dispute.Status.RESOLVED:
+            raise InvalidStateError('Dispute is already resolved.')
+
+        match = dispute.match
+
+        # Handle final score
+        final_score = None
+        if final_score_id:
+            try:
+                final_score = Score.objects.get(id=final_score_id, match=match)
+            except Score.DoesNotExist:
+                raise NotFoundError('Final score not found.')
+
+        # Handle declared winner
+        winner = None
+        if winner_id:
+            try:
+                winner = User.objects.get(id=winner_id)
+                if not match.is_player_in_match(winner):
+                    raise ValidationError('Winner must be a player in the match.')
+            except User.DoesNotExist:
+                raise NotFoundError('Winner not found.')
+        elif final_score:
+            winner = final_score.winner
+
+        # Update dispute
+        dispute.status = Dispute.Status.RESOLVED
+        dispute.resolved_by = user
+        dispute.resolution_notes = resolution_notes
+        dispute.resolved_at = timezone.now()
+        dispute.final_score = final_score
+        dispute.save()
+
+        # Update match
+        match.status = Match.Status.COMPLETED
+        match.winner = winner
         match.save()
 
         return dispute

@@ -100,3 +100,26 @@ def dispute_create(request, match_id):
     return render(request, 'scores/dispute_form.html', {
         'match': match,
     })
+
+
+@login_required
+def dispute_resolve(request, pk):
+    dispute = get_object_or_404(Dispute, pk=pk)
+
+    if request.method == 'POST':
+        try:
+            resolution_notes = request.POST.get('resolution_notes')
+            final_score_id = request.POST.get('final_score_id')
+            final_score = Score.objects.get(pk=final_score_id) if final_score_id else None
+
+            DisputeService.resolve_dispute(dispute, request.user, resolution_notes, final_score)
+            messages.success(request, "Dispute resolved!")
+            return redirect('dispute_detail', pk=pk)
+        except Exception as e:
+            messages.error(request, str(e))
+
+    scores = Score.objects.filter(match=dispute.match)
+    return render(request, 'scores/dispute_resolve.html', {
+        'dispute': dispute,
+        'scores': scores,
+    })

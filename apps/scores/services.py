@@ -11,7 +11,7 @@ from core.exceptions import (
     ValidationError, PermissionDeniedError, NotFoundError, InvalidStateError, DisputeError
 )
 from core.utils import validate_set_scores, determine_match_winner
-from .models import Score, Dispute
+from .models import Score, Dispute, Evidence
 
 
 class ScoreService:
@@ -313,3 +313,43 @@ class DisputeService:
         match.save()
 
         return dispute
+    
+    @staticmethod
+    def add_evidence(dispute_id, file, description, user):
+        """
+        Add evidence to a dispute.
+
+        Args:
+            dispute_id: ID of the dispute
+            file: Evidence file (optional)
+            description: Evidence description
+            user: User submitting evidence
+
+        Returns:
+            Evidence: Created evidence instance
+        """
+        try:
+            dispute = Dispute.objects.get(id=dispute_id)
+        except Dispute.DoesNotExist:
+            raise NotFoundError('Dispute not found.')
+
+        # Check dispute is still open
+        if dispute.status == Dispute.Status.RESOLVED:
+            raise InvalidStateError('Cannot add evidence to resolved dispute.')
+
+        # Players in match or referee/organizer can submit evidence
+        match = dispute.match
+        if user.is_player:
+            if not match.is_player_in_match(user):
+                raise PermissionDeniedError('You are not a player in this match.')
+        elif not (user.is_referee or user.is_organizer):
+            raise PermissionDeniedError('Only involved parties can submit evidence.')
+
+        evidence = Evidence.objects.create(
+            dispute=dispute,
+            submitted_by=user,
+            file=file,
+            description=description
+        )
+
+        return evidence

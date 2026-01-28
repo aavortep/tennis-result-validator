@@ -39,6 +39,7 @@ urlpatterns = [
     path('disputes/<int:pk>/', scores_views.dispute_detail, name='dispute_detail'),
     path('matches/<int:match_id>/dispute/', scores_views.dispute_create, name='dispute_create'),
     path('disputes/<int:pk>/resolve/', scores_views.dispute_resolve, name='dispute_resolve'),
+    path('disputes/<int:dispute_id>/evidence/', scores_views.evidence_add, name='evidence_add'),
 ]
 
 if settings.DEBUG:

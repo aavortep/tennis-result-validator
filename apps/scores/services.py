@@ -353,3 +353,8 @@ class DisputeService:
         )
 
         return evidence
+    
+    @staticmethod
+    def get_dispute_evidence(dispute_id):
+        """Get all evidence for a dispute"""
+        return Evidence.objects.filter(dispute_id=dispute_id)

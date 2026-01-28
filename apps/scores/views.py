@@ -13,7 +13,7 @@ from .models import Score, Dispute
 from .serializers import (
     ScoreSerializer, ScoreSubmitSerializer, ScoreUpdateSerializer,
     ScoreListSerializer, DisputeSerializer, DisputeCreateSerializer,
-    DisputeResolveSerializer
+    DisputeResolveSerializer, EvidenceSerializer
 )
 from .services import ScoreService, DisputeService
 
@@ -185,3 +185,13 @@ class DisputeResolveView(APIView):
             })
         except (ValidationError, PermissionDeniedError, NotFoundError, InvalidStateError) as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DisputeEvidenceView(generics.ListAPIView):
+    """List evidence for a dispute"""
+
+    serializer_class = EvidenceSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return DisputeService.get_dispute_evidence(self.kwargs['pk'])

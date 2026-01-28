@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from apps.accounts.serializers import UserPublicSerializer
 from core.utils import validate_set_scores
-from .models import Score, Dispute
+from .models import Score, Dispute, Evidence
 
 
 class ScoreSerializer(serializers.ModelSerializer):
@@ -94,3 +94,17 @@ class DisputeResolveSerializer(serializers.Serializer):
     resolution_notes = serializers.CharField(required=True)
     final_score_id = serializers.IntegerField(required=False, allow_null=True)
     winner_id = serializers.IntegerField(required=False, allow_null=True)
+
+
+class EvidenceSerializer(serializers.ModelSerializer):
+    """Serializer for evidence details"""
+
+    submitted_by = UserPublicSerializer(read_only=True)
+
+    class Meta:
+        model = Evidence
+        fields = [
+            'id', 'dispute', 'submitted_by', 'file',
+            'description', 'created_at'
+        ]
+        read_only_fields = ['id', 'created_at']

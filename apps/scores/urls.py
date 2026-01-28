@@ -17,6 +17,7 @@ urlpatterns = [
     path('disputes/<int:pk>/', views.DisputeDetailView.as_view(), name='dispute-detail'),
     path('disputes/create/', views.DisputeCreateView.as_view(), name='dispute-create'),
     path('disputes/<int:pk>/resolve/', views.DisputeResolveView.as_view(), name='dispute-resolve'),
+    path('disputes/<int:pk>/review/', views.DisputeReviewView.as_view(), name='dispute-review'),
     path('disputes/<int:pk>/evidence/', views.DisputeEvidenceView.as_view(), name='dispute-evidence'),
 
     # Evidence endpoints

@@ -358,3 +358,19 @@ class DisputeService:
     def get_dispute_evidence(dispute_id):
         """Get all evidence for a dispute"""
         return Evidence.objects.filter(dispute_id=dispute_id)
+    
+    @staticmethod
+    def mark_under_review(dispute_id, user):
+        """Mark a dispute as under review"""
+        try:
+            dispute = Dispute.objects.get(id=dispute_id)
+        except Dispute.DoesNotExist:
+            raise NotFoundError('Dispute not found.')
+
+        if not (user.is_referee or user.is_organizer):
+            raise PermissionDeniedError('Only referees and organizers can review disputes.')
+
+        dispute.status = Dispute.Status.UNDER_REVIEW
+        dispute.save()
+
+        return dispute

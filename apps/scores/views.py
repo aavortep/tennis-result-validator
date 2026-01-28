@@ -221,3 +221,19 @@ class EvidenceCreateView(APIView):
             )
         except (ValidationError, PermissionDeniedError, NotFoundError, InvalidStateError) as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DisputeReviewView(APIView):
+    """Mark dispute as under review"""
+
+    permission_classes = [CanResolveDispute]
+
+    def post(self, request, pk):
+        try:
+            dispute = DisputeService.mark_under_review(pk, request.user)
+            return Response({
+                'message': 'Dispute marked as under review.',
+                'dispute': DisputeSerializer(dispute).data
+            })
+        except (PermissionDeniedError, NotFoundError) as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

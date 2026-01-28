@@ -2,6 +2,7 @@ from rest_framework import status, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser
 
 from apps.accounts.permissions import (
     CanSubmitScore, IsOrganizerOrReferee, CanResolveDispute
@@ -13,7 +14,7 @@ from .models import Score, Dispute
 from .serializers import (
     ScoreSerializer, ScoreSubmitSerializer, ScoreUpdateSerializer,
     ScoreListSerializer, DisputeSerializer, DisputeCreateSerializer,
-    DisputeResolveSerializer, EvidenceSerializer
+    DisputeResolveSerializer, EvidenceSerializer, EvidenceCreateSerializer
 )
 from .services import ScoreService, DisputeService
 
@@ -195,3 +196,28 @@ class DisputeEvidenceView(generics.ListAPIView):
 
     def get_queryset(self):
         return DisputeService.get_dispute_evidence(self.kwargs['pk'])
+
+
+class EvidenceCreateView(APIView):
+    """Submit evidence for a dispute"""
+
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        serializer = EvidenceCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            evidence = DisputeService.add_evidence(
+                serializer.validated_data['dispute'].id,
+                serializer.validated_data.get('file'),
+                serializer.validated_data['description'],
+                request.user
+            )
+            return Response(
+                EvidenceSerializer(evidence).data,
+                status=status.HTTP_201_CREATED
+            )
+        except (ValidationError, PermissionDeniedError, NotFoundError, InvalidStateError) as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

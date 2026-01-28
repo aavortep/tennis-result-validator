@@ -108,3 +108,11 @@ class EvidenceSerializer(serializers.ModelSerializer):
             'description', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
+
+
+class EvidenceCreateSerializer(serializers.ModelSerializer):
+    """Serializer for submitting evidence"""
+
+    class Meta:
+        model = Evidence
+        fields = ['dispute', 'file', 'description']

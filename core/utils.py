@@ -1,7 +1,3 @@
-"""
-Utility functions for the Tennis Tournament application.
-"""
-
 import os
 from uuid import uuid4
 
@@ -15,8 +11,6 @@ def evidence_upload_path(instance, filename):
 
 def validate_set_scores(set_scores):
     """
-    Validate tennis set scores.
-
     Args:
         set_scores: List of dicts with 'player1' and 'player2' scores
 
@@ -68,8 +62,6 @@ def validate_set_scores(set_scores):
 
 def determine_match_winner(set_scores):
     """
-    Determine the winner of a match based on set scores.
-
     Args:
         set_scores: List of dicts with 'player1' and 'player2' scores
 

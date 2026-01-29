@@ -1,7 +1,8 @@
 """
 Django settings for Tennis Tournament Referee & Result Validator.
 
-Part A: Foundation - Authentication & User Management
+Part B: Tournament & Match Orchestration
+Builds on Part A (Accounts)
 """
 
 import os
@@ -26,8 +27,9 @@ INSTALLED_APPS = [
     # Third party
     'rest_framework',
     'corsheaders',
-    # Local apps - Part A: User Management
-    'apps.accounts',
+    # Local apps
+    'apps.accounts',      # Part A: User Management
+    'apps.tournaments',   # Part B: Tournament & Match Orchestration
 ]
 
 MIDDLEWARE = [

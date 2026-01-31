@@ -77,7 +77,6 @@ class TournamentDetailView(generics.RetrieveUpdateDestroyAPIView):
             TournamentService.delete_tournament(instance, self.request.user)
         except (PermissionDeniedError, InvalidStateError) as e:
             from rest_framework import serializers
-
             raise serializers.ValidationError(str(e))
 
 
@@ -209,7 +208,6 @@ class MatchListCreateView(generics.ListCreateAPIView):
             serializer.instance = match
         except (ValidationError, PermissionDeniedError, InvalidStateError) as e:
             from rest_framework import serializers
-
             raise serializers.ValidationError(str(e))
 
 

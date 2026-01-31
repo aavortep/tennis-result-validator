@@ -1,19 +1,15 @@
-from django.db import models
 from django.conf import settings
+from django.db import models
 
 from core.mixins import TimestampMixin
 
 
 class Ranking(TimestampMixin):
     player = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='rankings'
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="rankings"
     )
     tournament = models.ForeignKey(
-        'tournaments.Tournament',
-        on_delete=models.CASCADE,
-        related_name='rankings'
+        "tournaments.Tournament", on_delete=models.CASCADE, related_name="rankings"
     )
     points = models.IntegerField(default=0)
     wins = models.IntegerField(default=0)
@@ -25,9 +21,9 @@ class Ranking(TimestampMixin):
     position = models.PositiveIntegerField(default=0)
 
     class Meta:
-        db_table = 'rankings'
-        ordering = ['position', '-points']
-        unique_together = ['player', 'tournament']
+        db_table = "rankings"
+        ordering = ["position", "-points"]
+        unique_together = ["player", "tournament"]
 
     def __str__(self):
         return f"{self.player.username} - {self.tournament.name}: #{self.position}"
@@ -47,7 +43,7 @@ class GlobalRanking(TimestampMixin):
     player = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='global_ranking'
+        related_name="global_ranking",
     )
     total_points = models.IntegerField(default=0)
     total_wins = models.IntegerField(default=0)
@@ -57,8 +53,8 @@ class GlobalRanking(TimestampMixin):
     position = models.PositiveIntegerField(default=0)
 
     class Meta:
-        db_table = 'global_rankings'
-        ordering = ['position', '-total_points']
+        db_table = "global_rankings"
+        ordering = ["position", "-total_points"]
 
     def __str__(self):
         return f"{self.player.username}: Global #{self.position}"

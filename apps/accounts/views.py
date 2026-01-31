@@ -1,15 +1,19 @@
-from rest_framework import status, generics
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import User
+from .permissions import IsOrganizer
 from .serializers import (
-    UserSerializer, UserRegistrationSerializer, LoginSerializer,
-    UserUpdateSerializer, PasswordChangeSerializer, UserPublicSerializer
+    LoginSerializer,
+    PasswordChangeSerializer,
+    UserPublicSerializer,
+    UserRegistrationSerializer,
+    UserSerializer,
+    UserUpdateSerializer,
 )
 from .services import AccountService
-from .permissions import IsOrganizer
 
 
 class RegisterView(generics.CreateAPIView):
@@ -23,10 +27,10 @@ class RegisterView(generics.CreateAPIView):
         user = serializer.save()
         return Response(
             {
-                'message': 'User registered successfully.',
-                'user': UserSerializer(user).data
+                "message": "User registered successfully.",
+                "user": UserSerializer(user).data,
             },
-            status=status.HTTP_201_CREATED
+            status=status.HTTP_201_CREATED,
         )
 
 
@@ -36,12 +40,11 @@ class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
+        user = serializer.validated_data["user"]
         AccountService.login_user(request, user)
-        return Response({
-            'message': 'Login successful.',
-            'user': UserSerializer(user).data
-        })
+        return Response(
+            {"message": "Login successful.", "user": UserSerializer(user).data}
+        )
 
 
 class LogoutView(APIView):
@@ -49,7 +52,7 @@ class LogoutView(APIView):
 
     def post(self, request):
         AccountService.logout_user(request)
-        return Response({'message': 'Logout successful.'})
+        return Response({"message": "Logout successful."})
 
 
 class ProfileView(generics.RetrieveUpdateAPIView):
@@ -60,7 +63,7 @@ class ProfileView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
     def get_serializer_class(self):
-        if self.request.method in ('PUT', 'PATCH'):
+        if self.request.method in ("PUT", "PATCH"):
             return UserUpdateSerializer
         return UserSerializer
 
@@ -70,16 +73,15 @@ class PasswordChangeView(APIView):
 
     def post(self, request):
         serializer = PasswordChangeSerializer(
-            data=request.data,
-            context={'request': request}
+            data=request.data, context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
         AccountService.change_password(
             request.user,
-            serializer.validated_data['old_password'],
-            serializer.validated_data['new_password']
+            serializer.validated_data["old_password"],
+            serializer.validated_data["new_password"],
         )
-        return Response({'message': 'Password changed successfully.'})
+        return Response({"message": "Password changed successfully."})
 
 
 class DeleteAccountView(APIView):
@@ -88,8 +90,8 @@ class DeleteAccountView(APIView):
     def delete(self, request):
         AccountService.delete_account(request.user, request.user)
         return Response(
-            {'message': 'Account deleted successfully.'},
-            status=status.HTTP_204_NO_CONTENT
+            {"message": "Account deleted successfully."},
+            status=status.HTTP_204_NO_CONTENT,
         )
 
 

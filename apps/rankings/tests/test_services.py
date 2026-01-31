@@ -3,13 +3,14 @@ Tests for ranking services.
 """
 
 from datetime import date, timedelta
+
 from django.test import TestCase
 
 from apps.accounts.models import User
-from apps.tournaments.models import Tournament, Match
-from apps.scores.models import Score
-from apps.rankings.models import Ranking, GlobalRanking
+from apps.rankings.models import GlobalRanking, Ranking
 from apps.rankings.services import RankingService
+from apps.scores.models import Score
+from apps.tournaments.models import Match, Tournament
 
 
 class RankingServiceTest(TestCase):
@@ -17,36 +18,36 @@ class RankingServiceTest(TestCase):
 
     def setUp(self):
         self.organizer = User.objects.create_user(
-            username='organizer',
-            email='org@example.com',
-            password='pass123',
-            role=User.Role.ORGANIZER
+            username="organizer",
+            email="org@example.com",
+            password="pass123",
+            role=User.Role.ORGANIZER,
         )
         self.player1 = User.objects.create_user(
-            username='player1',
-            email='p1@example.com',
-            password='pass123',
-            role=User.Role.PLAYER
+            username="player1",
+            email="p1@example.com",
+            password="pass123",
+            role=User.Role.PLAYER,
         )
         self.player2 = User.objects.create_user(
-            username='player2',
-            email='p2@example.com',
-            password='pass123',
-            role=User.Role.PLAYER
+            username="player2",
+            email="p2@example.com",
+            password="pass123",
+            role=User.Role.PLAYER,
         )
         self.player3 = User.objects.create_user(
-            username='player3',
-            email='p3@example.com',
-            password='pass123',
-            role=User.Role.PLAYER
+            username="player3",
+            email="p3@example.com",
+            password="pass123",
+            role=User.Role.PLAYER,
         )
         self.tournament = Tournament.objects.create(
-            name='Test Tournament',
+            name="Test Tournament",
             start_date=date.today(),
             end_date=date.today() + timedelta(days=7),
-            location='Test City',
+            location="Test City",
             status=Tournament.Status.IN_PROGRESS,
-            created_by=self.organizer
+            created_by=self.organizer,
         )
         self.tournament.players.add(self.player1, self.player2, self.player3)
 
@@ -67,13 +68,17 @@ class RankingServiceTest(TestCase):
             player2=self.player2,
             status=Match.Status.COMPLETED,
             winner=self.player1,
-            round=Match.Round.QUARTERFINAL
+            round=Match.Round.QUARTERFINAL,
         )
 
         RankingService.update_ranking_after_match(match)
 
-        winner_ranking = Ranking.objects.get(player=self.player1, tournament=self.tournament)
-        loser_ranking = Ranking.objects.get(player=self.player2, tournament=self.tournament)
+        winner_ranking = Ranking.objects.get(
+            player=self.player1, tournament=self.tournament
+        )
+        loser_ranking = Ranking.objects.get(
+            player=self.player2, tournament=self.tournament
+        )
 
         self.assertEqual(winner_ranking.wins, 1)
         self.assertEqual(loser_ranking.losses, 1)
@@ -148,11 +153,11 @@ class RankingServiceTest(TestCase):
     def test_get_player_rankings(self):
         """Test getting player rankings across tournaments."""
         tournament2 = Tournament.objects.create(
-            name='Second Tournament',
+            name="Second Tournament",
             start_date=date.today() + timedelta(days=30),
             end_date=date.today() + timedelta(days=37),
-            location='Test City',
-            created_by=self.organizer
+            location="Test City",
+            created_by=self.organizer,
         )
         tournament2.players.add(self.player1)
 
@@ -173,12 +178,14 @@ class RankingServiceTest(TestCase):
             player2=self.player2,
             status=Match.Status.COMPLETED,
             winner=self.player1,
-            round=Match.Round.FINAL
+            round=Match.Round.FINAL,
         )
 
         RankingService.finalize_tournament_rankings(self.tournament)
 
-        winner_ranking = Ranking.objects.get(player=self.player1, tournament=self.tournament)
+        winner_ranking = Ranking.objects.get(
+            player=self.player1, tournament=self.tournament
+        )
         self.assertGreaterEqual(winner_ranking.points, RankingService.WINNER_BONUS)
 
     def test_head_to_head_stats(self):
@@ -189,7 +196,7 @@ class RankingServiceTest(TestCase):
             player2=self.player2,
             status=Match.Status.COMPLETED,
             winner=self.player1,
-            round=Match.Round.QUARTERFINAL
+            round=Match.Round.QUARTERFINAL,
         )
         Match.objects.create(
             tournament=self.tournament,
@@ -197,7 +204,7 @@ class RankingServiceTest(TestCase):
             player2=self.player1,
             status=Match.Status.COMPLETED,
             winner=self.player1,
-            round=Match.Round.SEMIFINAL
+            round=Match.Round.SEMIFINAL,
         )
         Match.objects.create(
             tournament=self.tournament,
@@ -205,12 +212,12 @@ class RankingServiceTest(TestCase):
             player2=self.player2,
             status=Match.Status.COMPLETED,
             winner=self.player2,
-            round=Match.Round.FINAL
+            round=Match.Round.FINAL,
         )
 
         stats = RankingService.get_head_to_head(self.player1.id, self.player2.id)
 
-        self.assertEqual(stats['total_matches'], 3)
-        self.assertEqual(stats['player1_wins'], 2)
-        self.assertEqual(stats['player2_wins'], 1)
-        self.assertEqual(len(stats['matches']), 3)
+        self.assertEqual(stats["total_matches"], 3)
+        self.assertEqual(stats["player1_wins"], 2)
+        self.assertEqual(stats["player2_wins"], 1)
+        self.assertEqual(len(stats["matches"]), 3)

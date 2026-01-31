@@ -2,11 +2,11 @@
 Tests for accounts services.
 """
 
-from django.test import TestCase, RequestFactory
+from django.test import RequestFactory, TestCase
 
 from apps.accounts.models import User
 from apps.accounts.services import AccountService
-from core.exceptions import ValidationError, PermissionDeniedError
+from core.exceptions import PermissionDeniedError, ValidationError
 
 
 class AccountServiceTest(TestCase):
@@ -18,32 +18,30 @@ class AccountServiceTest(TestCase):
     def test_register_user(self):
         """Test user registration."""
         data = {
-            'username': 'newuser',
-            'email': 'new@example.com',
-            'password': 'securepass123',
-            'first_name': 'New',
-            'last_name': 'User',
-            'role': User.Role.PLAYER,
+            "username": "newuser",
+            "email": "new@example.com",
+            "password": "securepass123",
+            "first_name": "New",
+            "last_name": "User",
+            "role": User.Role.PLAYER,
         }
         user = AccountService.register_user(data)
 
-        self.assertEqual(user.username, 'newuser')
-        self.assertEqual(user.email, 'new@example.com')
+        self.assertEqual(user.username, "newuser")
+        self.assertEqual(user.email, "new@example.com")
         self.assertEqual(user.role, User.Role.PLAYER)
-        self.assertTrue(user.check_password('securepass123'))
+        self.assertTrue(user.check_password("securepass123"))
 
     def test_register_duplicate_username(self):
         """Test registration fails with duplicate username."""
         User.objects.create_user(
-            username='existinguser',
-            email='existing@example.com',
-            password='pass123'
+            username="existinguser", email="existing@example.com", password="pass123"
         )
 
         data = {
-            'username': 'existinguser',
-            'email': 'new@example.com',
-            'password': 'securepass123',
+            "username": "existinguser",
+            "email": "new@example.com",
+            "password": "securepass123",
         }
 
         with self.assertRaises(ValidationError):
@@ -52,15 +50,13 @@ class AccountServiceTest(TestCase):
     def test_register_duplicate_email(self):
         """Test registration fails with duplicate email."""
         User.objects.create_user(
-            username='user1',
-            email='same@example.com',
-            password='pass123'
+            username="user1", email="same@example.com", password="pass123"
         )
 
         data = {
-            'username': 'user2',
-            'email': 'same@example.com',
-            'password': 'securepass123',
+            "username": "user2",
+            "email": "same@example.com",
+            "password": "securepass123",
         }
 
         with self.assertRaises(ValidationError):
@@ -69,52 +65,47 @@ class AccountServiceTest(TestCase):
     def test_update_profile(self):
         """Test profile update."""
         user = User.objects.create_user(
-            username='testuser',
-            email='test@example.com',
-            password='pass123'
+            username="testuser", email="test@example.com", password="pass123"
         )
 
-        updated = AccountService.update_profile(user, {
-            'first_name': 'Updated',
-            'last_name': 'Name',
-            'phone': '1234567890',
-        })
+        updated = AccountService.update_profile(
+            user,
+            {
+                "first_name": "Updated",
+                "last_name": "Name",
+                "phone": "1234567890",
+            },
+        )
 
-        self.assertEqual(updated.first_name, 'Updated')
-        self.assertEqual(updated.last_name, 'Name')
-        self.assertEqual(updated.phone, '1234567890')
+        self.assertEqual(updated.first_name, "Updated")
+        self.assertEqual(updated.last_name, "Name")
+        self.assertEqual(updated.phone, "1234567890")
 
     def test_change_password(self):
         """Test password change."""
         user = User.objects.create_user(
-            username='testuser',
-            email='test@example.com',
-            password='oldpass123'
+            username="testuser", email="test@example.com", password="oldpass123"
         )
 
-        AccountService.change_password(user, 'oldpass123', 'newpass456')
+        AccountService.change_password(user, "oldpass123", "newpass456")
         user.refresh_from_db()
 
-        self.assertTrue(user.check_password('newpass456'))
-        self.assertFalse(user.check_password('oldpass123'))
+        self.assertTrue(user.check_password("newpass456"))
+        self.assertFalse(user.check_password("oldpass123"))
 
     def test_change_password_wrong_old(self):
         """Test password change fails with wrong old password."""
         user = User.objects.create_user(
-            username='testuser',
-            email='test@example.com',
-            password='oldpass123'
+            username="testuser", email="test@example.com", password="oldpass123"
         )
 
         with self.assertRaises(ValidationError):
-            AccountService.change_password(user, 'wrongpass', 'newpass456')
+            AccountService.change_password(user, "wrongpass", "newpass456")
 
     def test_delete_own_account(self):
         """Test deleting own account."""
         user = User.objects.create_user(
-            username='testuser',
-            email='test@example.com',
-            password='pass123'
+            username="testuser", email="test@example.com", password="pass123"
         )
         user_id = user.id
 
@@ -125,16 +116,16 @@ class AccountServiceTest(TestCase):
     def test_delete_other_account_as_organizer(self):
         """Test organizer can delete other accounts."""
         organizer = User.objects.create_user(
-            username='organizer',
-            email='org@example.com',
-            password='pass123',
-            role=User.Role.ORGANIZER
+            username="organizer",
+            email="org@example.com",
+            password="pass123",
+            role=User.Role.ORGANIZER,
         )
         player = User.objects.create_user(
-            username='player',
-            email='player@example.com',
-            password='pass123',
-            role=User.Role.PLAYER
+            username="player",
+            email="player@example.com",
+            password="pass123",
+            role=User.Role.PLAYER,
         )
         player_id = player.id
 
@@ -145,16 +136,16 @@ class AccountServiceTest(TestCase):
     def test_delete_other_account_denied(self):
         """Test non-organizer cannot delete other accounts."""
         player1 = User.objects.create_user(
-            username='player1',
-            email='p1@example.com',
-            password='pass123',
-            role=User.Role.PLAYER
+            username="player1",
+            email="p1@example.com",
+            password="pass123",
+            role=User.Role.PLAYER,
         )
         player2 = User.objects.create_user(
-            username='player2',
-            email='p2@example.com',
-            password='pass123',
-            role=User.Role.PLAYER
+            username="player2",
+            email="p2@example.com",
+            password="pass123",
+            role=User.Role.PLAYER,
         )
 
         with self.assertRaises(PermissionDeniedError):
@@ -163,16 +154,22 @@ class AccountServiceTest(TestCase):
     def test_get_all_players(self):
         """Test getting all players."""
         User.objects.create_user(
-            username='player1', email='p1@example.com',
-            password='pass', role=User.Role.PLAYER
+            username="player1",
+            email="p1@example.com",
+            password="pass",
+            role=User.Role.PLAYER,
         )
         User.objects.create_user(
-            username='player2', email='p2@example.com',
-            password='pass', role=User.Role.PLAYER
+            username="player2",
+            email="p2@example.com",
+            password="pass",
+            role=User.Role.PLAYER,
         )
         User.objects.create_user(
-            username='referee', email='ref@example.com',
-            password='pass', role=User.Role.REFEREE
+            username="referee",
+            email="ref@example.com",
+            password="pass",
+            role=User.Role.REFEREE,
         )
 
         players = AccountService.get_all_players()
@@ -184,12 +181,16 @@ class AccountServiceTest(TestCase):
     def test_get_all_referees(self):
         """Test getting all referees."""
         User.objects.create_user(
-            username='ref1', email='r1@example.com',
-            password='pass', role=User.Role.REFEREE
+            username="ref1",
+            email="r1@example.com",
+            password="pass",
+            role=User.Role.REFEREE,
         )
         User.objects.create_user(
-            username='ref2', email='r2@example.com',
-            password='pass', role=User.Role.REFEREE
+            username="ref2",
+            email="r2@example.com",
+            password="pass",
+            role=User.Role.REFEREE,
         )
 
         referees = AccountService.get_all_referees()

@@ -2,20 +2,21 @@ from django.db import transaction
 from django.db.models import F
 
 from apps.accounts.models import User
-from apps.tournaments.models import Tournament, Match
 from apps.scores.models import Score
-from .models import Ranking, GlobalRanking
+from apps.tournaments.models import Match, Tournament
+
+from .models import GlobalRanking, Ranking
 
 
 class RankingService:
     ROUND_POINTS = {
-        'R128': 10,
-        'R64': 25,
-        'R32': 50,
-        'R16': 100,
-        'QF': 200,
-        'SF': 400,
-        'F': 800,
+        "R128": 10,
+        "R64": 25,
+        "R32": 50,
+        "R16": 100,
+        "QF": 200,
+        "SF": 400,
+        "F": 800,
     }
 
     WINNER_BONUS = 500
@@ -31,12 +32,10 @@ class RankingService:
         loser = match.player1 if match.player2 == winner else match.player2
 
         winner_ranking, _ = Ranking.objects.get_or_create(
-            player=winner,
-            tournament=tournament
+            player=winner, tournament=tournament
         )
         loser_ranking, _ = Ranking.objects.get_or_create(
-            player=loser,
-            tournament=tournament
+            player=loser, tournament=tournament
         )
 
         round_points = RankingService.ROUND_POINTS.get(match.round, 50)
@@ -50,8 +49,16 @@ class RankingService:
         score = Score.objects.filter(match=match, is_confirmed=True).first()
         if score and score.set_scores:
             for set_score in score.set_scores:
-                winner_games = set_score.get('player1', 0) if winner == match.player1 else set_score.get('player2', 0)
-                loser_games = set_score.get('player1', 0) if loser == match.player1 else set_score.get('player2', 0)
+                winner_games = (
+                    set_score.get("player1", 0)
+                    if winner == match.player1
+                    else set_score.get("player2", 0)
+                )
+                loser_games = (
+                    set_score.get("player1", 0)
+                    if loser == match.player1
+                    else set_score.get("player2", 0)
+                )
 
                 if winner_games > loser_games:
                     winner_ranking.sets_won += 1
@@ -73,12 +80,12 @@ class RankingService:
     @staticmethod
     def recalculate_positions(tournament):
         rankings = Ranking.objects.filter(tournament=tournament).order_by(
-            '-points', '-wins', 'losses', '-sets_won'
+            "-points", "-wins", "losses", "-sets_won"
         )
 
         for i, ranking in enumerate(rankings, 1):
             ranking.position = i
-            ranking.save(update_fields=['position'])
+            ranking.save(update_fields=["position"])
 
     @staticmethod
     @transaction.atomic
@@ -86,13 +93,12 @@ class RankingService:
         final_match = Match.objects.filter(
             tournament=tournament,
             round=Match.Round.FINAL,
-            status=Match.Status.COMPLETED
+            status=Match.Status.COMPLETED,
         ).first()
 
         if final_match and final_match.winner:
             winner_ranking = Ranking.objects.filter(
-                tournament=tournament,
-                player=final_match.winner
+                tournament=tournament, player=final_match.winner
             ).first()
 
             if winner_ranking:
@@ -123,58 +129,68 @@ class RankingService:
     @staticmethod
     def recalculate_global_positions():
         rankings = GlobalRanking.objects.all().order_by(
-            '-total_points', '-total_wins', 'total_losses'
+            "-total_points", "-total_wins", "total_losses"
         )
 
         for i, ranking in enumerate(rankings, 1):
             ranking.position = i
-            ranking.save(update_fields=['position'])
+            ranking.save(update_fields=["position"])
 
     @staticmethod
     def get_tournament_leaderboard(tournament_id):
-        return Ranking.objects.filter(
-            tournament_id=tournament_id
-        ).select_related('player').order_by('position')
+        return (
+            Ranking.objects.filter(tournament_id=tournament_id)
+            .select_related("player")
+            .order_by("position")
+        )
 
     @staticmethod
     def get_global_leaderboard():
-        return GlobalRanking.objects.select_related('player').order_by('position')
+        return GlobalRanking.objects.select_related("player").order_by("position")
 
     @staticmethod
     def get_player_rankings(player_id):
-        return Ranking.objects.filter(
-            player_id=player_id
-        ).select_related('tournament').order_by('-tournament__end_date')
+        return (
+            Ranking.objects.filter(player_id=player_id)
+            .select_related("tournament")
+            .order_by("-tournament__end_date")
+        )
 
     @staticmethod
     def initialize_tournament_rankings(tournament):
         for player in tournament.players.all():
-            Ranking.objects.get_or_create(
-                player=player,
-                tournament=tournament
-            )
+            Ranking.objects.get_or_create(player=player, tournament=tournament)
 
     @staticmethod
     def get_head_to_head(player1_id, player2_id):
-        matches = Match.objects.filter(
-            status=Match.Status.COMPLETED,
-            player1_id__in=[player1_id, player2_id],
-            player2_id__in=[player1_id, player2_id]
-        ).exclude(winner__isnull=True).select_related(
-            'player1', 'player2', 'winner', 'tournament'
-        ).order_by('-scheduled_time', '-created_at')
+        matches = (
+            Match.objects.filter(
+                status=Match.Status.COMPLETED,
+                player1_id__in=[player1_id, player2_id],
+                player2_id__in=[player1_id, player2_id],
+            )
+            .exclude(winner__isnull=True)
+            .select_related("player1", "player2", "winner", "tournament")
+            .order_by("-scheduled_time", "-created_at")
+        )
 
         player1_wins = matches.filter(winner_id=player1_id).count()
         player2_wins = matches.filter(winner_id=player2_id).count()
 
         return {
-            'player1_id': player1_id,
-            'player2_id': player2_id,
-            'player1_wins': player1_wins,
-            'player2_wins': player2_wins,
-            'total_matches': matches.count(),
-            'matches': list(matches.values(
-                'id', 'tournament__name', 'round', 'winner_id',
-                'scheduled_time', 'created_at'
-            ))
+            "player1_id": player1_id,
+            "player2_id": player2_id,
+            "player1_wins": player1_wins,
+            "player2_wins": player2_wins,
+            "total_matches": matches.count(),
+            "matches": list(
+                matches.values(
+                    "id",
+                    "tournament__name",
+                    "round",
+                    "winner_id",
+                    "scheduled_time",
+                    "created_at",
+                )
+            ),
         }

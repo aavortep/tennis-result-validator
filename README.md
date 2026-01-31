@@ -145,11 +145,51 @@ apps/
 - `GET /api/rankings/tournament/<id>/` - tournament leaderboard
 - `GET /api/rankings/head-to-head/<p1>/<p2>/` - head to head stats
 
-## Running Tests
+## Tests
+
+Tests are in each app's `tests/` folder:
+
+```
+apps/
+├── accounts/tests/
+│   ├── test_models.py      # user model tests
+│   └── test_services.py    # registration, login, profile
+├── tournaments/tests/
+│   ├── test_models.py      # tournament/match models
+│   └── test_services.py    # tournament crud, player management
+├── scores/tests/
+│   ├── test_services.py    # score submission, disputes
+│   └── test_integration.py # full workflows end-to-end
+└── rankings/tests/
+    └── test_services.py    # ranking calculations, head-to-head
+```
+
+### Running tests
 
 ```bash
+# all tests
 docker-compose exec web python manage.py test
+
+# specific app
+docker-compose exec web python manage.py test apps.accounts
+docker-compose exec web python manage.py test apps.scores
+
+# specific test file
+docker-compose exec web python manage.py test apps.scores.tests.test_integration
+
+# with verbosity
+docker-compose exec web python manage.py test -v 2
 ```
+
+### Test coverage
+
+The test suite covers:
+- User registration and authentication
+- Role-based permissions (organizer, referee, player, spectator)
+- Tournament lifecycle (create, register, start, complete)
+- Score submission and validation
+- Dispute creation and resolution
+- Ranking calculations
 
 ## Environment Variables
 

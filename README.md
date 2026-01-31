@@ -20,6 +20,83 @@ docker-compose up
 
 App runs at http://localhost:8000
 
+Default credentials:
+- **DB**: `tennis_tournament`
+- **User**: `tennis_user`
+- **Password**: `tennis_password`
+- **Port**: `5432`
+
+## Docker
+
+### Basic commands
+
+```bash
+# start everything
+docker-compose up
+
+# run in background
+docker-compose up -d
+
+# rebuild after code changes
+docker-compose up --build
+
+# stop containers
+docker-compose down
+
+# stop and remove volumes (wipes database)
+docker-compose down -v
+```
+
+### Volumes
+
+The app uses 3 volumes for persistent data:
+
+| Volume | Path in container | What it stores |
+|--------|-------------------|----------------|
+| postgres_data | /var/lib/postgresql/data | database |
+| media_data | /app/media | uploaded files (evidence, avatars) |
+| static_data | /app/staticfiles | collected static files |
+
+```bash
+# check volumes
+docker volume ls | grep tennis
+
+# backup database
+docker-compose exec db pg_dump -U tennis_user tennis_tournament > backup.sql
+
+# restore database
+cat backup.sql | docker-compose exec -T db psql -U tennis_user tennis_tournament
+```
+
+### Run without compose
+
+```bash
+# build image
+docker build -t tennis-app .
+
+# run with external postgres
+docker run -p 8000:8000 \
+  -e DB_HOST=host.docker.internal \
+  -e DB_NAME=tennis_tournament \
+  -e DB_USER=tennis_user \
+  -e DB_PASSWORD=tennis_password \
+  tennis-app
+```
+
+### Logs and debugging
+
+```bash
+# view logs
+docker-compose logs -f web
+
+# shell into container
+docker-compose exec web bash
+
+# run django commands
+docker-compose exec web python manage.py createsuperuser
+docker-compose exec web python manage.py shell
+```
+
 ## Project Structure
 
 ```

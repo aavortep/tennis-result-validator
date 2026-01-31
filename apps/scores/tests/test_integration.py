@@ -174,7 +174,7 @@ class DisputeResolutionWorkflowTest(TestCase):
         response = self.client.post('/api/scores/evidence/submit/', {
             'dispute': dispute_id,
             'description': 'Screenshot of scoreboard showing final score'
-        }, format='json')
+        }, format='multipart')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Step 3: Other player adds counter-evidence
@@ -182,7 +182,7 @@ class DisputeResolutionWorkflowTest(TestCase):
         response = self.client.post('/api/scores/evidence/submit/', {
             'dispute': dispute_id,
             'description': 'My video shows different score'
-        }, format='json')
+        }, format='multipart')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Step 4: Referee marks as under review

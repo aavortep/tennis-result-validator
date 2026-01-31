@@ -100,3 +100,18 @@ class RecalculateRankingsView(APIView):
                 {'error': 'Tournament not found.'},
                 status=404
             )
+
+
+class HeadToHeadView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, player1_id, player2_id):
+        from apps.accounts.models import User
+
+        if not User.objects.filter(id=player1_id).exists():
+            return Response({'error': 'Player 1 not found.'}, status=404)
+        if not User.objects.filter(id=player2_id).exists():
+            return Response({'error': 'Player 2 not found.'}, status=404)
+
+        stats = RankingService.get_head_to_head(player1_id, player2_id)
+        return Response(stats)

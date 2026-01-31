@@ -16,4 +16,5 @@ urlpatterns = [
 
     path('tournament/<int:tournament_id>/initialize/', views.InitializeTournamentRankingsView.as_view(), name='initialize-rankings'),
     path('tournament/<int:tournament_id>/recalculate/', views.RecalculateRankingsView.as_view(), name='recalculate-rankings'),
+    path('head-to-head/<int:player1_id>/<int:player2_id>/', views.HeadToHeadView.as_view(), name='head-to-head'),
 ]

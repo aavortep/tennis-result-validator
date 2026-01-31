@@ -153,3 +153,28 @@ class RankingService:
                 player=player,
                 tournament=tournament
             )
+
+    @staticmethod
+    def get_head_to_head(player1_id, player2_id):
+        matches = Match.objects.filter(
+            status=Match.Status.COMPLETED,
+            player1_id__in=[player1_id, player2_id],
+            player2_id__in=[player1_id, player2_id]
+        ).exclude(winner__isnull=True).select_related(
+            'player1', 'player2', 'winner', 'tournament'
+        ).order_by('-scheduled_time', '-created_at')
+
+        player1_wins = matches.filter(winner_id=player1_id).count()
+        player2_wins = matches.filter(winner_id=player2_id).count()
+
+        return {
+            'player1_id': player1_id,
+            'player2_id': player2_id,
+            'player1_wins': player1_wins,
+            'player2_wins': player2_wins,
+            'total_matches': matches.count(),
+            'matches': list(matches.values(
+                'id', 'tournament__name', 'round', 'winner_id',
+                'scheduled_time', 'created_at'
+            ))
+        }

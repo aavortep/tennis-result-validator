@@ -180,3 +180,37 @@ class RankingServiceTest(TestCase):
 
         winner_ranking = Ranking.objects.get(player=self.player1, tournament=self.tournament)
         self.assertGreaterEqual(winner_ranking.points, RankingService.WINNER_BONUS)
+
+    def test_head_to_head_stats(self):
+        """Test getting head to head stats between players."""
+        Match.objects.create(
+            tournament=self.tournament,
+            player1=self.player1,
+            player2=self.player2,
+            status=Match.Status.COMPLETED,
+            winner=self.player1,
+            round=Match.Round.QUARTERFINAL
+        )
+        Match.objects.create(
+            tournament=self.tournament,
+            player1=self.player2,
+            player2=self.player1,
+            status=Match.Status.COMPLETED,
+            winner=self.player1,
+            round=Match.Round.SEMIFINAL
+        )
+        Match.objects.create(
+            tournament=self.tournament,
+            player1=self.player1,
+            player2=self.player2,
+            status=Match.Status.COMPLETED,
+            winner=self.player2,
+            round=Match.Round.FINAL
+        )
+
+        stats = RankingService.get_head_to_head(self.player1.id, self.player2.id)
+
+        self.assertEqual(stats['total_matches'], 3)
+        self.assertEqual(stats['player1_wins'], 2)
+        self.assertEqual(stats['player2_wins'], 1)
+        self.assertEqual(len(stats['matches']), 3)

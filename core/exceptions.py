@@ -1,5 +1,4 @@
 class TennisException(Exception):
-    """Base exception"""
     pass
 
 
@@ -16,12 +15,10 @@ class NotFoundError(TennisException):
 
 
 class InvalidStateError(TennisException):
-    """Raised when an operation is attempted in an invalid state."""
     pass
 
 
 class ScoreConflictError(TennisException):
-    """Raised when there's a conflict in score submissions."""
     pass
 
 

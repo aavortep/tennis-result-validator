@@ -1,0 +1,15 @@
+name: tennis_tournament
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+    - django>=5.0
+    - djangorestframework>=3.14
+    - psycopg2-binary>=2.9
+    - gunicorn>=21.0
+    - python-dotenv>=1.0
+    - Pillow>=10.0
+    - django-cors-headers>=4.3
